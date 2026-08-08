@@ -1,12 +1,13 @@
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
 import { jwtHelper } from "../utils/jwtHelper";
+import config from "../config";
 
 interface userInfo {
     name: string,
     email: string,
     password: string,
+    bio?: string
 }
 
 
@@ -42,7 +43,16 @@ export const resolvers = {
                 }
             });
 
-            const token = await jwtHelper({ userID: newUser.id });
+            if (args.bio) {
+                await context.prisma.profile.create({
+                    data: {
+                        bio: args.bio,
+                        userId: newUser.id
+                    }
+                })
+            }
+
+            const token = await jwtHelper({ userID: newUser.id }, config.jwt.secret as string);
             //console.log(token)
             return {
                 userError: null,
@@ -78,7 +88,7 @@ export const resolvers = {
                 }
             }
 
-            const token = await jwtHelper({ userID: user.id });
+            const token = await jwtHelper({ userID: user.id }, config.jwt.secret as string);
             return {
                 userError: null,
                 token: token,
