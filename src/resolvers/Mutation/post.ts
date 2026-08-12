@@ -1,5 +1,5 @@
 export const postResolvers = {
-    addPost: async (parent: any, {post}: any, { prisma, userInfo }: any) => {
+    addPost: async (parent: any, { post }: any, { prisma, userInfo }: any) => {
         // console.log("Add Post Data:", args)
         // console.log("User Info:", userInfo);
 
@@ -29,6 +29,62 @@ export const postResolvers = {
         return {
             userError: null,
             post: newPost
+        }
+    },
+    updatePost: async (parent: any, args: any, { prisma, userInfo }: any) => {
+        console.log("args", args, "User Info", userInfo);
+
+        if (!userInfo) {
+            return {
+                userError: "User not authenticated!",
+                post: null
+            }
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userInfo.userId
+            }
+        })
+
+        if (!user) {
+            return {
+                userError: "User Not Found!",
+                post: null
+            }
+        }
+
+        const post = await prisma.post.findUnique({
+            where: {
+                id: Number(args.postId)
+            }
+        });
+
+        if (!post) {
+            return {
+                userError: "Post not found!",
+                post: null
+            }
+        }
+
+
+        if (post.authorId !== user.id) {
+            return {
+                userError: "Post not owned by user!",
+                post: null
+            }
+        }
+
+        const updatedPost = await prisma.post.update({
+            where: {
+                id: Number(args.postId)
+            },
+            data: args.post
+        });
+
+        return {
+            userError: null,
+            post: updatedPost
         }
     }
 }
