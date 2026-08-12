@@ -10,7 +10,10 @@ import { jwtHelper } from './utils/jwtHelper';
 
 
 interface Context {
-    prisma: PrismaClient<never, GlobalOmitConfig | undefined, DefaultArgs>
+    prisma: PrismaClient<never, GlobalOmitConfig | undefined, DefaultArgs>,
+    userInfo: {
+        userId: number | null,
+    } | null
 }
 
 const main = async () => {
@@ -22,11 +25,12 @@ const main = async () => {
     const { url } = await startStandaloneServer(server, {
         listen: { port: 4000 },
         context: async ({ req }): Promise<Context> => {
-            console.log(req.headers.authorization)
+            // console.log(req.headers.authorization)
 
             const userInfo = await jwtHelper.getUserInfoFromToken(req.headers.authorization as string);
             return {
-                prisma
+                prisma,
+                userInfo
             }
         },
     });

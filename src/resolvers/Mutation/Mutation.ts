@@ -45,7 +45,7 @@ export const Mutation = {
             })
         }
 
-        const token = await jwtHelper.generateToken({ userID: newUser.id }, config.jwt.secret as string);
+        const token = await jwtHelper.generateToken({ userId: newUser.id }, config.jwt.secret as string);
         //console.log(token)
         return {
             userError: null,
@@ -54,7 +54,7 @@ export const Mutation = {
     },
 
     signin: async (parent: any, args: any, { prisma }: any) => {
-        console.log(args)
+        // console.log(args)
 
         const user = await prisma.user.findFirst({
             where: {
@@ -81,14 +81,43 @@ export const Mutation = {
             }
         }
 
-        const token = await jwtHelper.generateToken({ userID: user.id }, config.jwt.secret as string);
+        const token = await jwtHelper.generateToken({ userId: user.id }, config.jwt.secret as string);
         return {
             userError: null,
             token: token,
         }
     },
 
-    addPost: async (parent: any, args: any, { prisma }: any) => {
-        console.log("Add Post Data:", args)
+    addPost: async (parent: any, args: any, { prisma, userInfo }: any) => {
+        // console.log("Add Post Data:", args)
+        console.log("User Info:", userInfo);
+
+        if (!userInfo) {
+            return {
+                userError: "User not authenticated!",
+                post: null
+            }
+        }
+
+        if (!args.title || !args.content) {
+            return {
+                userError: "Title and Content are required!",
+                post: null
+            }
+        }
+
+        const newPost = await prisma.post.create({
+            data: {
+                title: args.title,
+                content: args.content,
+                authorId: userInfo.userId
+            }
+        });
+        console.log(newPost);
+
+        return {
+            userError: null,
+            post: newPost
+        }
     }
 }

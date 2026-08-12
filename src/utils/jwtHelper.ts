@@ -2,7 +2,7 @@ import jwt, { Secret } from 'jsonwebtoken';
 import config from '../config';
 
 
-const generateToken = async (payload: { userID: number }, secret: Secret) => {
+const generateToken = async (payload: { userId: number }, secret: Secret) => {
     const token = jwt.sign(payload, secret, { expiresIn: '1d' });
     return token
 }
@@ -12,7 +12,7 @@ const getUserInfoFromToken = async (token: string) => {
             userId: number
         }
 
-        console.log("User Data : ", userData);
+        // console.log("User Data : ", userData);
         return userData;
     }
     catch {
