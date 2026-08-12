@@ -1,3 +1,5 @@
+import { checkUserAccess } from "../../utils/checkUserAccess";
+
 export const postResolvers = {
     addPost: async (parent: any, { post }: any, { prisma, userInfo }: any) => {
         // console.log("Add Post Data:", args)
@@ -32,7 +34,7 @@ export const postResolvers = {
         }
     },
     updatePost: async (parent: any, args: any, { prisma, userInfo }: any) => {
-        console.log("args", args, "User Info", userInfo);
+        // console.log("args", args, "User Info", userInfo);
 
         if (!userInfo) {
             return {
@@ -41,38 +43,9 @@ export const postResolvers = {
             }
         }
 
-        const user = await prisma.user.findUnique({
-            where: {
-                id: userInfo.userId
-            }
-        })
-
-        if (!user) {
-            return {
-                userError: "User Not Found!",
-                post: null
-            }
-        }
-
-        const post = await prisma.post.findUnique({
-            where: {
-                id: Number(args.postId)
-            }
-        });
-
-        if (!post) {
-            return {
-                userError: "Post not found!",
-                post: null
-            }
-        }
-
-
-        if (post.authorId !== user.id) {
-            return {
-                userError: "Post not owned by user!",
-                post: null
-            }
+        const error = await checkUserAccess(prisma, userInfo.userId, args.postId);
+        if (error) {
+            return error;
         }
 
         const updatedPost = await prisma.post.update({
@@ -85,6 +58,34 @@ export const postResolvers = {
         return {
             userError: null,
             post: updatedPost
+        }
+    },
+
+    
+    deletePost: async (parent: any, args: any, { prisma, userInfo }: any) => {
+
+        if (!userInfo) {
+            return {
+                userError: "User not authenticated!",
+                post: null
+            }
+        }
+
+        const error = await checkUserAccess(prisma, userInfo.userId, args.postId);
+        if (error) {
+            return error;
+        }
+
+        const deletePost = await prisma.post.delete({
+            where: {
+                id: Number(args.postId)
+            },
+            data: args.post
+        });
+
+        return {
+            userError: null,
+            post: deletePost
         }
     }
 }
