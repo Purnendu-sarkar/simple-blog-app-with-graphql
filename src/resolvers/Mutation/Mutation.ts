@@ -45,7 +45,7 @@ export const Mutation = {
             })
         }
 
-        const token = await jwtHelper({ userID: newUser.id }, config.jwt.secret as string);
+        const token = await jwtHelper.generateToken({ userID: newUser.id }, config.jwt.secret as string);
         //console.log(token)
         return {
             userError: null,
@@ -81,10 +81,14 @@ export const Mutation = {
             }
         }
 
-        const token = await jwtHelper({ userID: user.id }, config.jwt.secret as string);
+        const token = await jwtHelper.generateToken({ userID: user.id }, config.jwt.secret as string);
         return {
             userError: null,
             token: token,
         }
+    },
+
+    addPost: async (parent: any, args: any, { prisma }: any) => {
+        console.log("Add Post Data:", args)
     }
 }
